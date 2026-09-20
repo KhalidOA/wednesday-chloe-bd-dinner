@@ -1,0 +1,42 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #2b1740;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#game {
+  display: block;
+  touch-action: none;
+  border-radius: 8px;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+}
+
+/* ---- Organic design tokens (matches the Camel Jump design canvas) ---- */
+:root {
+  --cj-bg: #f5ead8;
+  --cj-surface: #ebddc5;
+  --cj-text: #201e1d;
+  --cj-accent: #c67139;
+  --cj-accent-dark: #8c491a;
+  --cj-accent-2: #7a8a5e;
+  --cj-font-head: "Caprasimo", serif;
+  --cj-font-body: "Figtree", system-ui, sans-serif;
+}
+
