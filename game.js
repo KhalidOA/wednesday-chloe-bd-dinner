@@ -33,12 +33,11 @@
   const PIPE_INTERVAL = 1750; // ms
   const PLAYER_X = LW * 0.28;
   // Deliberately smaller than the sprite's full bounding box: drawPlayer()
-  // rotates the camel+rider up to -0.3..+0.5 rad depending on vertical
+  // rotates the face sprite up to -0.3..+0.5 rad depending on vertical
   // speed, but this hitbox doesn't rotate with it, and a box sized to the
-  // sprite's full extent (including the far reach of the neck/legs/
-  // headdress) caused "unfair" deaths where the tilted sprite visually
-  // missed a pipe the static box still overlapped. Sized instead to sit
-  // inside the sprite's solid core (camel body + rider torso).
+  // sprite's full visual extent (the face circle plus legs) caused "unfair"
+  // deaths where the tilted sprite visually missed a pipe the static box
+  // still overlapped. Sized instead to sit inside the face's solid core.
   const HALF_W = 26;
   const HALF_H = 18;
   const HORIZON_Y = LH - GROUND_H - 30;
@@ -618,44 +617,29 @@
     ctx.fillRect(0, y, LW, 4);
   }
 
-  function drawRiderBody() {
-    // robe (neutral color, shared by every player face)
-    ctx.fillStyle = '#e7cfa6';
-    ctx.beginPath();
-    ctx.moveTo(-10, -14);
-    ctx.lineTo(10, -14);
-    ctx.lineTo(14, 4);
-    ctx.lineTo(-14, 4);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,0.08)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
+  // The player's face photo IS the character (no camel/rider body) — drawn
+  // as a big circle with a thin outline so it reads clearly against both
+  // the sky and the spike walls.
+  const FACE_SPRITE_R = 28;
 
-    // arm
-    ctx.strokeStyle = '#e7cfa6';
-    ctx.lineWidth = 6;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(6, -10);
-    ctx.lineTo(20, -14);
-    ctx.stroke();
-  }
-
-  function drawRiderFace(index) {
+  function drawRiderFace(index, r) {
     const img = FACE_IMAGES[index];
-    const cx = 0, cy = -20, r = 8;
     ctx.save();
     ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
     ctx.closePath();
     ctx.fillStyle = '#e8b98a';
     ctx.fill();
     if (img && img.complete && img.naturalWidth > 0) {
       ctx.clip();
-      ctx.drawImage(img, cx - r, cy - r, r * 2, r * 2);
+      ctx.drawImage(img, -r, -r, r * 2, r * 2);
     }
     ctx.restore();
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
   }
 
   function drawPlayer() {
@@ -671,48 +655,16 @@
     const angle = state === 'playing' ? Math.max(-0.3, Math.min(0.5, player.vy / 900)) : 0;
     ctx.rotate(angle);
 
-    // legs
+    // legs, dangling beneath the face
     ctx.strokeStyle = '#7a5230';
     ctx.lineWidth = 4;
     ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(-14, 16); ctx.lineTo(-16, 30);
-    ctx.moveTo(-2, 18); ctx.lineTo(-4, 32);
-    ctx.moveTo(10, 18); ctx.lineTo(12, 32);
-    ctx.moveTo(20, 14); ctx.lineTo(22, 28);
+    ctx.moveTo(-8, FACE_SPRITE_R - 4); ctx.lineTo(-10, FACE_SPRITE_R + 12);
+    ctx.moveTo(8, FACE_SPRITE_R - 4); ctx.lineTo(10, FACE_SPRITE_R + 12);
     ctx.stroke();
 
-    // camel body
-    const bodyGrad = ctx.createLinearGradient(-30, -10, 30, 20);
-    bodyGrad.addColorStop(0, '#c99a63');
-    bodyGrad.addColorStop(1, '#a97c46');
-    ctx.fillStyle = bodyGrad;
-    ctx.beginPath();
-    ctx.ellipse(0, 6, 30, 16, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // hump
-    ctx.beginPath();
-    ctx.ellipse(-4, -10, 14, 12, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // neck + head
-    ctx.beginPath();
-    ctx.moveTo(24, 2);
-    ctx.quadraticCurveTo(38, -6, 34, -20);
-    ctx.quadraticCurveTo(32, -26, 26, -24);
-    ctx.quadraticCurveTo(30, -14, 20, -4);
-    ctx.closePath();
-    ctx.fill();
-
-    // camel face detail
-    ctx.fillStyle = '#3a2a18';
-    ctx.beginPath();
-    ctx.arc(33, -21, 1.6, 0, Math.PI * 2);
-    ctx.fill();
-
-    drawRiderBody();
-    drawRiderFace(selectedFace);
+    drawRiderFace(selectedFace, FACE_SPRITE_R);
 
     ctx.restore();
   }
@@ -960,34 +912,25 @@
     c.arc(W * 0.5, H * 0.2, 110, 0, Math.PI * 2);
     c.fill();
 
-    // simple static camel + rider silhouette
+    // the winning face, big, matching the in-game look
     c.save();
     c.translate(W * 0.5, H * 0.55);
-    c.scale(3.4, 3.4);
-    c.strokeStyle = '#3a2a3f';
-    c.lineWidth = 4;
-    c.lineCap = 'round';
+    const shareImg = FACE_IMAGES[selectedFace];
+    const shareR = 90;
     c.beginPath();
-    c.moveTo(-14, 16); c.lineTo(-16, 30);
-    c.moveTo(-2, 18); c.lineTo(-4, 32);
-    c.moveTo(10, 18); c.lineTo(12, 32);
-    c.moveTo(20, 14); c.lineTo(22, 28);
+    c.arc(0, 0, shareR, 0, Math.PI * 2);
+    c.closePath();
+    c.fillStyle = '#e8b98a';
+    c.fill();
+    if (shareImg && shareImg.complete && shareImg.naturalWidth > 0) {
+      c.save();
+      c.clip();
+      c.drawImage(shareImg, -shareR, -shareR, shareR * 2, shareR * 2);
+      c.restore();
+    }
+    c.lineWidth = 5;
+    c.strokeStyle = 'rgba(255,255,255,0.8)';
     c.stroke();
-    c.fillStyle = '#3a2a3f';
-    c.beginPath(); c.ellipse(0, 6, 30, 16, 0, 0, Math.PI * 2); c.fill();
-    c.beginPath(); c.ellipse(-4, -10, 14, 12, 0, 0, Math.PI * 2); c.fill();
-    c.beginPath();
-    c.moveTo(24, 2);
-    c.quadraticCurveTo(38, -6, 34, -20);
-    c.quadraticCurveTo(32, -26, 26, -24);
-    c.quadraticCurveTo(30, -14, 20, -4);
-    c.closePath();
-    c.fill();
-    c.fillStyle = '#f5f3ee';
-    c.beginPath();
-    c.moveTo(-10, -14); c.lineTo(10, -14); c.lineTo(14, 4); c.lineTo(-14, 4);
-    c.closePath();
-    c.fill();
     c.restore();
 
     c.textAlign = 'center';
