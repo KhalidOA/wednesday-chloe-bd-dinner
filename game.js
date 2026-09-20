@@ -206,9 +206,19 @@
       h: FACE_GRID.cardSize,
     };
   });
-  const FACE_IMAGES = Array.from({ length: NUM_FACES }, (_, i) => {
+  // Hosted off-repo (not committed to this public repo) so the friend
+  // photos aren't sitting in git history — see catbox.moe account.
+  const FACE_URLS = [
+    'https://files.catbox.moe/nl4woc.jpg',
+    'https://files.catbox.moe/zb8zdv.jpg',
+    'https://files.catbox.moe/n5nlor.jpg',
+    'https://files.catbox.moe/5lfjht.jpg',
+    'https://files.catbox.moe/37rhab.jpg',
+    'https://files.catbox.moe/zneqy4.jpg',
+  ];
+  const FACE_IMAGES = FACE_URLS.map(url => {
     const img = new Image();
-    img.src = `assets/faces/face${i + 1}.jpg`;
+    img.src = url;
     return img;
   });
 
@@ -226,14 +236,14 @@
   let taunt = '';
 
   const TAUNTS = [
-    'Better luck next time, noob.',
-    'Skill issue.',
-    'The spikes remain undefeated.',
-    'Certified noob moment.',
-    "That's gonna leave a mark.",
-    'Ouch. Try again?',
-    'The spikes win this round.',
-    'RIP.',
+    'Suerte para la próxima, novato.',
+    'Te faltó técnica.',
+    'Las púas siguen invictas.',
+    'Momento novato certificado.',
+    'Eso va a dejar marca.',
+    'Ay. ¿Otra vez?',
+    'Las púas ganan esta ronda.',
+    'QEPD.',
   ];
 
   function makeSplat(cx, cy) {
@@ -368,7 +378,7 @@
     const speedMul = 1 + speedRamp * HARD_MODE_BOOST;
     if (hardMode && !hardModeTriggered) {
       hardModeTriggered = true;
-      popups.push({ x: PLAYER_X, y: player.y - HALF_H - 6, age: 0, text: 'أسرع! · Faster!' });
+      popups.push({ x: PLAYER_X, y: player.y - HALF_H - 6, age: 0, text: 'أسرع! · ¡Más rápido!' });
     }
 
     spawnTimer += dt * 1000;
@@ -770,10 +780,10 @@
   }
 
   function drawHomeScreen() {
-    drawTextAligned('Wednesday Chloe BD Dinner', LW / 2, 60, 19, CJ_TEXT, '700', 'center');
-    drawTextAligned(`Best: ${best}`, LW / 2, 86, 13, 'rgba(32,30,29,0.6)', '600', 'center');
+    drawTextAligned('Los Habibis Increíbles', LW / 2, 60, 19, CJ_TEXT, '700', 'center');
+    drawTextAligned(`Mejor: ${best}`, LW / 2, 86, 13, 'rgba(32,30,29,0.6)', '600', 'center');
 
-    drawTextAligned('Choose your player', 24, 266, 16, CJ_TEXT, '700', 'left');
+    drawTextAligned('Elige tu jugador', 24, 266, 16, CJ_TEXT, '700', 'left');
 
     faceCardRects.forEach((r, i) => {
       drawOptionCard(r, selectedFace === i, 18);
@@ -801,12 +811,12 @@
     roundRectPath(PLAY_BTN.x, PLAY_BTN.y, PLAY_BTN.w, PLAY_BTN.h, 999);
     ctx.fillStyle = CJ_ACCENT;
     ctx.fill();
-    drawText('Play', LW / 2, PLAY_BTN.y + PLAY_BTN.h / 2, 20, CJ_BG, '700');
+    drawText('Jugar', LW / 2, PLAY_BTN.y + PLAY_BTN.h / 2, 20, CJ_BG, '700');
 
     roundRectPath(HOWTO_BTN.x, HOWTO_BTN.y, HOWTO_BTN.w, HOWTO_BTN.h, 999);
     ctx.fillStyle = CJ_SURFACE;
     ctx.fill();
-    drawTextAligned('How to play', LW / 2, HOWTO_BTN.y + HOWTO_BTN.h / 2, 13, CJ_TEXT, '600', 'center');
+    drawTextAligned('Cómo jugar', LW / 2, HOWTO_BTN.y + HOWTO_BTN.h / 2, 13, CJ_TEXT, '600', 'center');
   }
 
   function drawBackButton() {
@@ -850,7 +860,7 @@
   function drawHUD() {
     if (state === 'playing') {
       drawOutlinedText(String(score), LW / 2, 70, 48, '#ffffff');
-      drawText(`Best ${best}`, LW / 2, 104, 13, 'rgba(255,255,255,0.9)', '600');
+      drawText(`Mejor ${best}`, LW / 2, 104, 13, 'rgba(255,255,255,0.9)', '600');
     }
 
     if (state === 'gameover') {
@@ -863,10 +873,10 @@
       ctx.fillStyle = CJ_BG;
       ctx.fill();
 
-      drawOutlinedText('Game Over', LW / 2, GAMEOVER_CARD.y + 46, 26, CJ_TEXT);
+      drawOutlinedText('Fin del juego', LW / 2, GAMEOVER_CARD.y + 46, 26, CJ_TEXT);
       drawText(taunt, LW / 2, GAMEOVER_CARD.y + 76, 12.5, 'rgba(32,30,29,0.65)', '600');
 
-      [[GAMEOVER_CHIP1, 'Score', String(score)], [GAMEOVER_CHIP2, 'Best', String(best)]].forEach(([chip, label, value]) => {
+      [[GAMEOVER_CHIP1, 'Puntaje', String(score)], [GAMEOVER_CHIP2, 'Mejor', String(best)]].forEach(([chip, label, value]) => {
         roundRectPath(chip.x, chip.y, chip.w, chip.h, 20);
         ctx.fillStyle = CJ_SURFACE;
         ctx.fill();
@@ -878,7 +888,7 @@
         ctx.fillText(value, chip.x + chip.w / 2, chip.y + 54);
       });
 
-      drawText('Tap to continue', LW / 2, GAMEOVER_CARD.y + GAMEOVER_CARD.h + 34, 14, 'rgba(255,246,232,0.9)', '600');
+      drawText('Toca para continuar', LW / 2, GAMEOVER_CARD.y + GAMEOVER_CARD.h + 34, 14, 'rgba(255,246,232,0.9)', '600');
     }
   }
 
@@ -887,28 +897,28 @@
     roundRectPath(x, y, w, h, 999);
     ctx.fillStyle = CJ_ACCENT;
     ctx.fill();
-    drawText('Share Score', x + w / 2, y + h / 2, 14, CJ_BG, '700');
+    drawText('Compartir puntaje', x + w / 2, y + h / 2, 14, CJ_BG, '700');
   }
 
   // ---- How to play: a single-open accordion of real Q&A, grounded in the
   // actual mechanics rather than placeholders ----
   const FAQ = [
     {
-      q: 'How do I play?',
-      a: 'Tap anywhere on the screen to hop. Keep tapping to dodge the spikes.',
+      q: '¿Cómo se juega?',
+      a: 'Toca en cualquier parte de la pantalla para saltar. Sigue tocando para esquivar las púas.',
     },
     {
-      q: 'How do I choose my character?',
-      a: 'On the home screen, tap one of the 6 faces to pick who you play as.',
+      q: '¿Cómo elijo mi personaje?',
+      a: 'En la pantalla de inicio, toca una de las 6 caras para elegir con quién jugar.',
     },
     {
-      q: 'Can I share my score?',
-      a: 'After a run ends, tap "Share Score" to create an image of your result and share it with friends.',
+      q: '¿Puedo compartir mi puntaje?',
+      a: 'Cuando termine una partida, toca "Compartir puntaje" para crear una imagen de tu resultado y compartirla con tus amigos.',
     },
   ];
 
   function drawHowToScreen() {
-    drawOutlinedText('How to play', LW / 2, 56, 26, CJ_TEXT);
+    drawOutlinedText('Cómo jugar', LW / 2, 56, 26, CJ_TEXT);
 
     faqRects = [];
     let y = 92;
@@ -943,7 +953,12 @@
   // Renders a standalone score-card image (independent canvas, not the game's)
   // and hands it to the phone's native share sheet, falling back to a direct
   // download if navigator.share isn't available (e.g. desktop browsers).
-  async function shareScore() {
+  // Builds the score-card canvas and exports it to a PNG blob. The face
+  // photos are hotlinked from an external host with no CORS headers, so
+  // drawing one into this offscreen canvas taints it and toBlob() will
+  // throw/resolve null — in that case the caller retries with
+  // includeFace=false so sharing still works, just without the photo.
+  function buildShareCanvas(includeFace) {
     const W = 800, H = 1000;
     const off = document.createElement('canvas');
     off.width = W;
@@ -972,7 +987,7 @@
     c.closePath();
     c.fillStyle = '#e8b98a';
     c.fill();
-    if (shareImg && shareImg.complete && shareImg.naturalWidth > 0) {
+    if (includeFace && shareImg && shareImg.complete && shareImg.naturalWidth > 0) {
       c.save();
       c.clip();
       c.drawImage(shareImg, -shareR, -shareR, shareR * 2, shareR * 2);
@@ -987,16 +1002,16 @@
     c.font = '800 40px "Segoe UI", Tahoma, sans-serif';
     c.lineWidth = 6;
     c.strokeStyle = 'rgba(0,0,0,0.35)';
-    c.strokeText('Wednesday Chloe', W / 2, 90);
+    c.strokeText('Los Habibis', W / 2, 90);
     c.fillStyle = '#ffffff';
-    c.fillText('Wednesday Chloe', W / 2, 90);
+    c.fillText('Los Habibis', W / 2, 90);
     c.font = '600 24px "Segoe UI", Tahoma, sans-serif';
     c.fillStyle = 'rgba(255,255,255,0.9)';
-    c.fillText('BD Dinner', W / 2, 128);
+    c.fillText('Increíbles', W / 2, 128);
 
     c.font = '700 34px "Segoe UI", Tahoma, sans-serif';
     c.fillStyle = '#ffffff';
-    c.fillText(`Player ${selectedFace + 1}`, W / 2, H * 0.32);
+    c.fillText(`Jugador ${selectedFace + 1}`, W / 2, H * 0.32);
 
     const boxW = 560, boxH = 190, boxX = (W - boxW) / 2, boxY = H * 0.72;
     const r = 20;
@@ -1012,20 +1027,35 @@
 
     c.fillStyle = '#ffffff';
     c.font = '700 40px "Segoe UI", Tahoma, sans-serif';
-    c.fillText(`Score: ${score}`, W / 2, boxY + 65);
+    c.fillText(`Puntaje: ${score}`, W / 2, boxY + 65);
     c.font = '500 26px "Segoe UI", Tahoma, sans-serif';
     c.fillStyle = 'rgba(255,255,255,0.85)';
-    c.fillText(`Best: ${best}`, W / 2, boxY + 115);
+    c.fillText(`Mejor: ${best}`, W / 2, boxY + 115);
 
-    const blob = await new Promise(resolve => off.toBlob(resolve, 'image/png'));
+    return off;
+  }
+
+  async function canvasToBlob(canvas) {
+    try {
+      return await new Promise((resolve, reject) => {
+        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('empty blob')), 'image/png');
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function shareScore() {
+    let blob = await canvasToBlob(buildShareCanvas(true));
+    if (!blob) blob = await canvasToBlob(buildShareCanvas(false));
     if (!blob) return;
 
-    const shareText = `I scored ${score} in Wednesday Chloe BD Dinner! Best: ${best}`;
-    const file = new File([blob], 'wednesday-chloe-bd-dinner-score.png', { type: 'image/png' });
+    const shareText = `¡Anoté ${score} en Los Habibis Increíbles! Mejor: ${best}`;
+    const file = new File([blob], 'los-habibis-increibles-puntaje.png', { type: 'image/png' });
 
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
-        await navigator.share({ files: [file], title: 'Wednesday Chloe BD Dinner', text: shareText });
+        await navigator.share({ files: [file], title: 'Los Habibis Increíbles', text: shareText });
         return;
       } catch (e) {
         // user cancelled, or share failed — fall back to a direct download below
@@ -1035,7 +1065,7 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'wednesday-chloe-bd-dinner-score.png';
+    a.download = 'los-habibis-increibles-puntaje.png';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
