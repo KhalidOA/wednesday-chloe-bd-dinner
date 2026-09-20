@@ -222,6 +222,34 @@
   let popups; // floating "+N" text (unused for now, kept for future bonus effects)
   let faqOpenIndex = null;
   let faqRects = [];
+  let deathSplat = [];
+  let taunt = '';
+
+  const TAUNTS = [
+    'Better luck next time, noob.',
+    'Skill issue.',
+    'The spikes remain undefeated.',
+    'Certified noob moment.',
+    "That's gonna leave a mark.",
+    'Ouch. Try again?',
+    'The spikes win this round.',
+    'RIP.',
+  ];
+
+  function makeSplat(cx, cy) {
+    const blobs = [];
+    for (let i = 0; i < 6; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const dist = Math.random() * 20;
+      blobs.push({ x: cx + Math.cos(a) * dist, y: cy + Math.sin(a) * dist, r: 22 + Math.random() * 26 });
+    }
+    for (let i = 0; i < 14; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const dist = 30 + Math.random() * 110;
+      blobs.push({ x: cx + Math.cos(a) * dist, y: cy + Math.sin(a) * dist, r: 4 + Math.random() * 12 });
+    }
+    return blobs;
+  }
 
   function resetGame() {
     player = { y: LH * 0.42, vy: 0 };
@@ -385,6 +413,8 @@
 
     if (dead) {
       state = 'gameover';
+      taunt = TAUNTS[Math.floor(Math.random() * TAUNTS.length)];
+      deathSplat = makeSplat(PLAYER_X, player.y);
       if (score > best) {
         best = score;
         localStorage.setItem(BEST_KEY, String(best));
@@ -800,6 +830,23 @@
     ctx.restore();
   }
 
+  function drawDeathSplat() {
+    ctx.save();
+    ctx.fillStyle = 'rgba(150, 12, 12, 0.8)';
+    for (const b of deathSplat) {
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(90, 6, 6, 0.6)';
+    for (const b of deathSplat) {
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r * 0.45, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
   function drawHUD() {
     if (state === 'playing') {
       drawOutlinedText(String(score), LW / 2, 70, 48, '#ffffff');
@@ -810,11 +857,14 @@
       ctx.fillStyle = 'rgba(30, 20, 10, 0.45)';
       ctx.fillRect(0, 0, LW, LH);
 
+      drawDeathSplat();
+
       roundRectPath(GAMEOVER_CARD.x, GAMEOVER_CARD.y, GAMEOVER_CARD.w, GAMEOVER_CARD.h, 28);
       ctx.fillStyle = CJ_BG;
       ctx.fill();
 
-      drawOutlinedText('Game Over', LW / 2, GAMEOVER_CARD.y + 50, 30, CJ_TEXT);
+      drawOutlinedText('Game Over', LW / 2, GAMEOVER_CARD.y + 46, 26, CJ_TEXT);
+      drawText(taunt, LW / 2, GAMEOVER_CARD.y + 76, 12.5, 'rgba(32,30,29,0.65)', '600');
 
       [[GAMEOVER_CHIP1, 'Score', String(score)], [GAMEOVER_CHIP2, 'Best', String(best)]].forEach(([chip, label, value]) => {
         roundRectPath(chip.x, chip.y, chip.w, chip.h, 20);
