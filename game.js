@@ -49,7 +49,6 @@
   const MUTE_KEY = 'wcbdMuted';
   const CHARACTER_KEY = 'wcbdFace';
   const MUTE_BTN = { x: LW - 46, y: 10, w: 36, h: 36 };
-  const BACK_BTN = { x: 10, y: 10, w: 36, h: 36 };
   const GAMEOVER_CARD = { x: 40, y: 160, w: 320, h: 258 };
   const GAMEOVER_CHIP1 = { x: 60, y: 252, w: 132, h: 78 };
   const GAMEOVER_CHIP2 = { x: 208, y: 252, w: 132, h: 78 };
@@ -66,8 +65,7 @@
   const FONT_BODY = '"Figtree", system-ui, sans-serif';
 
   // ---- Home screen layout (character select + play, all on one screen) ----
-  const PLAY_BTN = { x: 22, y: 572, w: 356, h: 64 };
-  const HOWTO_BTN = { x: 22, y: 646, w: 356, h: 40 };
+  const PLAY_BTN = { x: 22, y: 616, w: 356, h: 64 };
 
   // ---- Procedurally generated background music (no audio files) ----
   // Same looping rhythmic phrase for every city, but each city transposes it
@@ -222,7 +220,7 @@
     return img;
   });
 
-  let state = 'home'; // home | playing | gameover | howto
+  let state = 'home'; // home | playing | gameover
   let selectedFace;
   let player, pipes, score, best, spawnTimer, groundOffset, skyScrollX, skyScrollXFar, lastTime;
   let speedRamp, hardModeTriggered;
@@ -230,8 +228,6 @@
   const HARD_MODE_BOOST = 0.35; // +35% speed once the ramp is fully eased in
   let flapAnim = 0;
   let popups; // floating "+N" text (unused for now, kept for future bonus effects)
-  let faqOpenIndex = null;
-  let faqRects = [];
   let deathSplat = [];
   let taunt = '';
 
@@ -305,14 +301,6 @@
     if (state === 'home') {
       const buttons = faceCardRects.map((rect, i) => ({ rect, onTap: () => selectFace(i) }));
       buttons.push({ rect: PLAY_BTN, onTap: () => startRun() });
-      buttons.push({ rect: HOWTO_BTN, onTap: () => { state = 'howto'; } });
-      return buttons;
-    }
-    if (state === 'howto') {
-      const buttons = [{ rect: BACK_BTN, onTap: () => { state = 'home'; } }];
-      faqRects.forEach((rect, i) => {
-        buttons.push({ rect, onTap: () => { faqOpenIndex = faqOpenIndex === i ? null : i; } });
-      });
       return buttons;
     }
     if (state === 'gameover') {
@@ -727,24 +715,6 @@
     ctx.restore();
   }
 
-  function wrapText(text, maxWidth, font) {
-    ctx.font = font;
-    const words = text.split(' ');
-    const lines = [];
-    let line = '';
-    for (const word of words) {
-      const test = line ? line + ' ' + word : word;
-      if (line && ctx.measureText(test).width > maxWidth) {
-        lines.push(line);
-        line = word;
-      } else {
-        line = test;
-      }
-    }
-    if (line) lines.push(line);
-    return lines;
-  }
-
   function drawOutlinedText(text, x, y, size, color) {
     ctx.font = `${size}px ${FONT_HEAD}`;
     ctx.textAlign = 'center';
@@ -804,7 +774,7 @@
     });
 
     // bottom action bar
-    roundRectPath(0, 556, LW, LH - 556, 0);
+    roundRectPath(0, 596, LW, LH - 596, 0);
     ctx.fillStyle = 'rgba(245, 234, 216, 0.96)';
     ctx.fill();
 
@@ -812,32 +782,6 @@
     ctx.fillStyle = CJ_ACCENT;
     ctx.fill();
     drawText('Jugar', LW / 2, PLAY_BTN.y + PLAY_BTN.h / 2, 20, CJ_BG, '700');
-
-    roundRectPath(HOWTO_BTN.x, HOWTO_BTN.y, HOWTO_BTN.w, HOWTO_BTN.h, 999);
-    ctx.fillStyle = CJ_SURFACE;
-    ctx.fill();
-    drawTextAligned('Cómo jugar', LW / 2, HOWTO_BTN.y + HOWTO_BTN.h / 2, 13, CJ_TEXT, '600', 'center');
-  }
-
-  function drawBackButton() {
-    const { x, y, w, h } = BACK_BTN;
-    const cx = x + w / 2, cy = y + h / 2;
-    ctx.save();
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.32)';
-    ctx.beginPath();
-    ctx.arc(cx, cy, w / 2, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.beginPath();
-    ctx.moveTo(cx + 5, cy - 8);
-    ctx.lineTo(cx - 5, cy);
-    ctx.lineTo(cx + 5, cy + 8);
-    ctx.stroke();
-    ctx.restore();
   }
 
   function drawDeathSplat() {
@@ -898,56 +842,6 @@
     ctx.fillStyle = CJ_ACCENT;
     ctx.fill();
     drawText('Compartir puntaje', x + w / 2, y + h / 2, 14, CJ_BG, '700');
-  }
-
-  // ---- How to play: a single-open accordion of real Q&A, grounded in the
-  // actual mechanics rather than placeholders ----
-  const FAQ = [
-    {
-      q: '¿Cómo se juega?',
-      a: 'Toca en cualquier parte de la pantalla para saltar. Sigue tocando para esquivar las púas.',
-    },
-    {
-      q: '¿Cómo elijo mi personaje?',
-      a: 'En la pantalla de inicio, toca una de las 6 caras para elegir con quién jugar.',
-    },
-    {
-      q: '¿Puedo compartir mi puntaje?',
-      a: 'Cuando termine una partida, toca "Compartir puntaje" para crear una imagen de tu resultado y compartirla con tus amigos.',
-    },
-  ];
-
-  function drawHowToScreen() {
-    drawOutlinedText('Cómo jugar', LW / 2, 56, 26, CJ_TEXT);
-
-    faqRects = [];
-    let y = 92;
-    const w = 352, x = LW / 2 - w / 2, textW = w - 36;
-    FAQ.forEach((item, i) => {
-      const open = faqOpenIndex === i;
-      const qh = 52;
-      faqRects.push({ x, y, w, h: qh });
-
-      const lines = open ? wrapText(item.a, textW, `500 13px ${FONT_BODY}`) : [];
-      const answerH = lines.length * 18;
-      const totalH = open ? qh + 16 + answerH : qh;
-      roundRectPath(x, y, w, totalH, 20);
-      ctx.fillStyle = CJ_SURFACE;
-      ctx.fill();
-
-      drawTextAligned(item.q, x + 18, y + qh / 2, 14.5, CJ_TEXT, '700', 'left');
-      drawTextAligned(open ? '−' : '+', x + w - 24, y + qh / 2, 20, CJ_ACCENT_DARK, '700', 'center');
-
-      if (open) {
-        let ty = y + qh + 16;
-        lines.forEach(line => {
-          drawTextAligned(line, x + 18, ty, 13, 'rgba(32,30,29,0.75)', '500', 'left');
-          ty += 18;
-        });
-      }
-
-      y += totalH + 10;
-    });
   }
 
   // Renders a standalone score-card image (independent canvas, not the game's)
@@ -1117,15 +1011,10 @@
   // and skyline, matching the design's own screens (2a-2e flat, 2f alone
   // uses the game world).
   function draw() {
-    if (state === 'home' || state === 'howto') {
+    if (state === 'home') {
       ctx.fillStyle = CJ_BG;
       ctx.fillRect(0, 0, LW, LH);
-      if (state === 'home') {
-        drawHomeScreen();
-      } else if (state === 'howto') {
-        drawHowToScreen();
-        drawBackButton();
-      }
+      drawHomeScreen();
     } else {
       drawSky();
       drawHorizon();
