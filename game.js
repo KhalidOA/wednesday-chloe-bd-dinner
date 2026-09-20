@@ -208,7 +208,7 @@
   });
   const FACE_IMAGES = Array.from({ length: NUM_FACES }, (_, i) => {
     const img = new Image();
-    img.src = `assets/faces/face${i + 1}.svg`;
+    img.src = `assets/faces/face${i + 1}.jpg`;
     return img;
   });
 
